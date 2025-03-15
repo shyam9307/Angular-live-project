@@ -3,12 +3,19 @@ pipeline {
   stages {
     stage('Front-end') {
       agent {
-        docker { image 'node:16-alpine' }
+        docker { 
+          image 'node:16-alpine' 
+          args '--user root'  // Run as root inside the container to avoid permission issues
+        }
+      }
+      environment {
+        NPM_CONFIG_CACHE = "$WORKSPACE/.npm"  // Set npm cache directory to a writable location
       }
       steps {
         script {
-          sh 'npm install' // Step 1: Install dependencies
-          sh 'npm start'   // Step 2: Start the Angular app
+          sh 'mkdir -p $NPM_CONFIG_CACHE'  // Ensure the directory exists
+          sh 'npm install --unsafe-perm'   // Allow installing packages with root
+          sh 'npm start'
         }
       }
     }
