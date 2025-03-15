@@ -1,27 +1,21 @@
 pipeline {
-    agent {
+  agent none
+  stages {
+    stage('Front-end') {
+      agent {
         docker { image 'node:16-alpine' }
-    }
-    environment {
-        GIT_REPO = 'https://github.com/shyam9307/Angular-live-project.git'
-        APP_DIR = 'angular-app'
-    }
-    stages {
-        stage('Clone Repository') {
-            steps {
-                sh 'git clone $GIT_REPO $APP_DIR'
-            }
+      }
+      steps {
+        script {
+          sh 'npm install' // Step 1: Install dependencies
         }
-        stage('Install Dependencies') {
-            steps {
-                sh 'cd $APP_DIR && npm install'
-            }
+      }
+      steps {
+        script {
+          sh 'npm start' // Step 2: Start the Angular app
         }
-        stage('Start Application') {
-            steps {
-                sh 'cd $APP_DIR && npm start'
-            }
-        }
+      }
     }
+  }
 }
 
