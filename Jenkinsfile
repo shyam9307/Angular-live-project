@@ -8,11 +8,7 @@ pipeline {
       steps {
         script {
           sh 'npm install' // Step 1: Install dependencies
-        }
-      }
-      steps {
-        script {
-          sh 'npm start' // Step 2: Start the Angular app
+          sh 'npm start'   // Step 2: Start the Angular app
         }
       }
     }
