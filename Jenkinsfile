@@ -1,5 +1,5 @@
 pipeline {
-  agent none
+  agent any
   stages {
     stage('Front-end') {
       agent {
@@ -15,7 +15,7 @@ pipeline {
         script {
           sh 'mkdir -p $NPM_CONFIG_CACHE'  // Ensure the directory exists
           sh 'npm install --unsafe-perm'   // Allow installing packages with root
-          sh 'npm start'
+          sh 'nohup npm start &'           // Run npm start in the background
         }
       }
     }
