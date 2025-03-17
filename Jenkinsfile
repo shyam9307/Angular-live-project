@@ -20,5 +20,23 @@ pipeline {
       }
     }
   }
+  post {
+    success {
+      script {
+        def baseUrl = "http://your-server-address"  // Change this to your actual server address
+        def od = "${baseUrl}/od"
+        def ci = "${baseUrl}/ci"
+        def pr = "${baseUrl}/pr"
+
+        echo "Successfully executed the pipeline. Here are the links:"
+        echo "OD Link: ${od}"
+        echo "CI Link: ${ci}"
+        echo "PR Link: ${pr}"
+      }
+    }
+    failure {
+      echo "Pipeline execution failed."
+    }
+  }
 }
 
