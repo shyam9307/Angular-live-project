@@ -1,42 +1,44 @@
 pipeline {
-  agent any
-  stages {
-    stage('Front-end') {
-      agent {
-        docker { 
-          image 'node:16-alpine' 
-          args '--user root'  // Run as root inside the container to avoid permission issues
+    agent {
+        docker {
+            image 'node:16'
+            args '-u root'
         }
-      }
-      environment {
-        NPM_CONFIG_CACHE = "$WORKSPACE/.npm"  // Set npm cache directory to a writable location
-      }
-      steps {
-        script {
-          sh 'mkdir -p $NPM_CONFIG_CACHE'  // Ensure the directory exists
-          sh 'npm install --unsafe-perm'   // Allow installing packages with root
-          sh 'nohup npm start &'           // Run npm start in the background
-        }
-      }
     }
-  }
-  post {
-    success {
-      script {
-        def baseUrl = "http://your-server-address"  // Change this to your actual server address
-        def od = "${baseUrl}/od"
-        def ci = "${baseUrl}/ci"
-        def pr = "${baseUrl}/pr"
 
-        echo "Successfully executed the pipeline. Here are the links:"
-        echo "OD Link: ${od}"
-        echo "CI Link: ${ci}"
-        echo "PR Link: ${pr}"
-      }
+    stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    sh 'rm -rf Angular-Hello-World'
+                    sh 'git clone https://github.com/shyam9307/Angular-Hello-World.git'
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('Angular-Hello-World') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Build Project') {
+            steps {
+                dir('Angular-Hello-World') {
+                    sh 'npm run build -- --configuration=production'
+                }
+            }
+        }
     }
-    failure {
-      echo "Pipeline execution failed."
+
+    post {
+        success {
+            echo "✅ Build completed successfully!"
+        }
+        failure {
+            echo "❌ Build failed!"
+        }
     }
-  }
 }
-
