@@ -5,7 +5,7 @@ import { Component } from '@angular/core';
   template: `
     <h1>Welcome...!</h1>
     <h2>This is Shyam Patil's first live Project</h2>
-    <h2>Successfully trigger the pipeline</h2>
+    <h2>Successfully trigger the pipeline 2</h2>
   `
 })
 export class AppComponent {
