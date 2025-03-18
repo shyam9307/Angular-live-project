@@ -5,7 +5,6 @@ pipeline {
             args '-u root'
         }
     }
-
     stages {
         stage('Clone Repository') {
             steps {
@@ -19,20 +18,18 @@ pipeline {
                 }
             }
         }
-
         stage('Install Dependencies') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
                     dir('Angular-Hello-World') {
                         sh '''
                         set -e
-                        npm install
+                        npm ci
                         '''
                     }
                 }
             }
         }
-
         stage('Build Project') {
             steps {
                 timeout(time: 10, unit: 'MINUTES') {
@@ -46,7 +43,6 @@ pipeline {
             }
         }
     }
-
     post {
         success {
             echo "✅ Build completed successfully!"
