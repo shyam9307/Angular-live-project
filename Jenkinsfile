@@ -23,18 +23,23 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') {
+                timeout(time: 3, unit: 'MINUTES') {
                     dir('Angular-Hello-World') {
                         sh '''
                         set -e
                         echo "🔄 Cleaning npm cache..."
                         npm cache clean --force
                         
-                        echo "🧹 Removing node_modules & package-lock.json..."
-                        rm -rf node_modules package-lock.json
+                        echo "🧹 Removing node_modules..."
+                        rm -rf node_modules
                         
-                        echo "📦 Installing dependencies using npm ci..."
-                        npm ci
+                        if [ -f package-lock.json ]; then
+                            echo "📦 Installing dependencies using npm ci..."
+                            npm ci
+                        else
+                            echo "⚠️ package-lock.json not found. Running npm install instead..."
+                            npm install
+                        fi
                         '''
                     }
                 }
@@ -42,7 +47,7 @@ pipeline {
         }
         stage('Build Project') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') {
+                timeout(time: 5, unit: 'MINUTES') {
                     dir('Angular-Hello-World') {
                         sh '''
                         set -e
