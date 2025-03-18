@@ -10,24 +10,38 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 script {
-                    sh 'rm -rf Angular-Hello-World'
-                    sh 'git clone https://github.com/shyam9307/Angular-live-project'
+                    sh '''
+                    set -e
+                    if [ ! -d "Angular-Hello-World" ]; then
+                        git clone https://github.com/shyam9307/Angular-live-project Angular-Hello-World
+                    fi
+                    '''
                 }
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                dir('Angular-Hello-World') {
-                    sh 'npm install'
+                timeout(time: 5, unit: 'MINUTES') {
+                    dir('Angular-Hello-World') {
+                        sh '''
+                        set -e
+                        npm install
+                        '''
+                    }
                 }
             }
         }
 
         stage('Build Project') {
             steps {
-                dir('Angular-Hello-World') {
-                    sh 'npm run build -- --configuration=production'
+                timeout(time: 10, unit: 'MINUTES') {
+                    dir('Angular-Hello-World') {
+                        sh '''
+                        set -e
+                        npm run build -- --configuration=production
+                        '''
+                    }
                 }
             }
         }
@@ -39,6 +53,9 @@ pipeline {
         }
         failure {
             echo "❌ Build failed!"
+            script {
+                currentBuild.result = 'FAILURE'
+            }
         }
     }
 }
