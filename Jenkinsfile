@@ -11,7 +11,7 @@ pipeline {
             steps {
                 script {
                     sh 'rm -rf Angular-Hello-World'
-                    sh 'git clone https://github.com/shyam9307/Angular-Hello-World.git'
+                    sh 'git clone https://github.com/shyam9307/Angular-live-project'
                 }
             }
         }
