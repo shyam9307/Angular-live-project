@@ -5,6 +5,9 @@ pipeline {
             args '-u root'
         }
     }
+    environment {
+        NODE_OPTIONS = "--max_old_space_size=4096"  // Prevents memory issues during build
+    }
     stages {
         stage('Clone Repository') {
             steps {
@@ -20,10 +23,17 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
+                timeout(time: 10, unit: 'MINUTES') {
                     dir('Angular-Hello-World') {
                         sh '''
                         set -e
+                        echo "🔄 Cleaning npm cache..."
+                        npm cache clean --force
+                        
+                        echo "🧹 Removing node_modules & package-lock.json..."
+                        rm -rf node_modules package-lock.json
+                        
+                        echo "📦 Installing dependencies using npm ci..."
                         npm ci
                         '''
                     }
@@ -36,6 +46,7 @@ pipeline {
                     dir('Angular-Hello-World') {
                         sh '''
                         set -e
+                        echo "🏗️ Building the project..."
                         npm run build -- --configuration=production
                         '''
                     }
