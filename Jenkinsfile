@@ -13,7 +13,7 @@ pipeline {
             steps {
                 sshagent(['ec2-ssh-key']) {  // Use the credential ID from Step 2
                     sh """
-                        ssh -o StrictHostKeyChecking=no ec2-user@your-ec2-public-ip <<EOF
+                        ssh -o StrictHostKeyChecking=no ec2-user@3.83.107.186 <<EOF
                         sudo rm -rf /var/www/html/angular-app/*
                         sudo cp -r dist/angular-app/* /var/www/html/angular-app/
                         sudo systemctl restart nginx
