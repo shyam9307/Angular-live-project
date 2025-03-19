@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        BUILD_DIR = 'src/dist'
-        DEPLOY_DIR = '/var/www/html' // Destination path on the server
-        SERVER_USER = 'ec2-user' // Replace with your server username
-        SERVER_IP = '3.83.107.186' // Replace with your server's IP address
+        BUILD_DIR = 'dist'  // Updated from 'src/dist'
+        DEPLOY_DIR = '/var/www/html'
+        SERVER_USER = 'ec2-user'
+        SERVER_IP = '34.207.194.243'
     }
 
     stages {
@@ -24,7 +24,7 @@ pipeline {
         stage('Build Angular App') {
             steps {
                 sh 'npm run build'
-                sh 'ls -R src/dist/'  // Debug: List build output
+                sh 'ls -R dist/'  // Debugging: Check if build output exists
             }
         }
 
@@ -46,6 +46,7 @@ pipeline {
         }
     }
 }
+
 
 
 
