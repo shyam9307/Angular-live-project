@@ -1,33 +1,25 @@
 pipeline {
     agent any
 
-    environment {
-        BUILD_DIR = 'src/dist'
-    }
-
     stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
-            }
-        }
-
-        stage('Install Dependencies') {
+        stage('Build') {
             steps {
                 sh 'npm install'
+                sh 'ng build --prod'
             }
         }
 
-        stage('Build Angular App') {
+        stage('Deploy') {
             steps {
-                sh 'npm run build'
-                sh 'ls -R src/dist/'  // Debug: List build output
-            }
-        }
-
-        stage('Archive Build Artifacts') {
-            steps {
-                archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
+                sshagent(['ec2-ssh-key']) {  // Use the credential ID from Step 2
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ec2-user@your-ec2-public-ip <<EOF
+                        sudo rm -rf /var/www/html/angular-app/*
+                        sudo cp -r dist/angular-app/* /var/www/html/angular-app/
+                        sudo systemctl restart nginx
+                        EOF
+                    """
+                }
             }
         }
     }
@@ -38,6 +30,7 @@ pipeline {
 
 
 
+// To Build Script:
 
 // pipeline {
 //     agent any
@@ -95,6 +88,47 @@ pipeline {
 // EOF
 // '''
 //                 }
+//             }
+//         }
+//     }
+// }
+
+
+
+
+
+// Only Build Script:
+
+// pipeline {
+//     agent any
+
+//     environment {
+//         BUILD_DIR = 'src/dist'
+//     }
+
+//     stages {
+//         stage('Checkout Code') {
+//             steps {
+//                 git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
+//             }
+//         }
+
+//         stage('Install Dependencies') {
+//             steps {
+//                 sh 'npm install'
+//             }
+//         }
+
+//         stage('Build Angular App') {
+//             steps {
+//                 sh 'npm run build'
+//                 sh 'ls -R src/dist/'  // Debug: List build output
+//             }
+//         }
+
+//         stage('Archive Build Artifacts') {
+//             steps {
+//                 archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
 //             }
 //         }
 //     }
