@@ -1,29 +1,52 @@
 pipeline {
     agent any
 
+    environment {
+        BUILD_DIR = 'src/dist'
+        DEPLOY_DIR = '/var/www/html' // Destination path on the server
+        SERVER_USER = 'ec2-user' // Replace with your server username
+        SERVER_IP = '3.83.107.186' // Replace with your server's IP address
+    }
+
     stages {
-        stage('Build') {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
+            }
+        }
+
+        stage('Install Dependencies') {
             steps {
                 sh 'npm install'
-                sh 'ng build --prod'
+            }
+        }
+
+        stage('Build Angular App') {
+            steps {
+                sh 'npm run build'
+                sh 'ls -R src/dist/'  // Debug: List build output
+            }
+        }
+
+        stage('Archive Build Artifacts') {
+            steps {
+                archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
             }
         }
 
         stage('Deploy') {
             steps {
-                sshagent(['ec2-ssh-key']) {  // Use the credential ID from Step 2
+                script {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ec2-user@3.83.107.186 <<EOF
-                        sudo rm -rf /var/www/html/angular-app/*
-                        sudo cp -r dist/angular-app/* /var/www/html/angular-app/
-                        sudo systemctl restart nginx
-                        EOF
+                        echo "Deploying to server..."
+                        scp -r ${BUILD_DIR}/* ${SERVER_USER}@${SERVER_IP}:${DEPLOY_DIR}
                     """
                 }
             }
         }
     }
 }
+
 
 
 
