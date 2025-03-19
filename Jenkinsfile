@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'your-repository-url'
+                git 'https://github.com/shyam9307/Angular-live-project'
             }
         }
 
