@@ -1,73 +1,53 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:16'
-            args '-u root'
-        }
-    }
+    agent any
+
     environment {
-        NODE_OPTIONS = "--max_old_space_size=4096"  // Prevents memory issues during build
+        NODEJS_VERSION = '18' // Set the Node.js version
     }
+
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
+            }
+        }
+
+        stage('Setup Node.js') {
             steps {
                 script {
-                    sh '''
-                    set -e
-                    if [ ! -d "Angular-Hello-World" ]; then
-                        git clone https://github.com/shyam9307/Angular-live-project Angular-Hello-World
-                    fi
-                    '''
+                    def nodeInstalled = sh(script: 'which node', returnStatus: true) == 0
+                    if (!nodeInstalled) {
+                        error "Node.js is not installed! Please install Node.js ${NODEJS_VERSION} on your Jenkins agent."
+                    }
                 }
             }
         }
+
         stage('Install Dependencies') {
             steps {
-                timeout(time: 3, unit: 'MINUTES') {
-                    dir('Angular-Hello-World') {
-                        sh '''
-                        set -e
-                        echo "🔄 Cleaning npm cache..."
-                        npm cache clean --force
-                        
-                        echo "🧹 Removing node_modules..."
-                        rm -rf node_modules
-                        
-                        if [ -f package-lock.json ]; then
-                            echo "📦 Installing dependencies using npm ci..."
-                            npm ci
-                        else
-                            echo "⚠️ package-lock.json not found. Running npm install instead..."
-                            npm install
-                        fi
-                        '''
-                    }
-                }
+                sh 'npm install'
             }
         }
-        stage('Build Project') {
+
+        stage('Build Angular App') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    dir('Angular-Hello-World') {
-                        sh '''
-                        set -e
-                        echo "🏗️ Building the project..."
-                        npm run build -- --configuration=production
-                        '''
-                    }
-                }
+                sh 'npm run build --prod'
+            }
+        }
+
+        stage('Archive Build Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'dist/**/*', fingerprint: true
             }
         }
     }
+
     post {
         success {
-            echo "✅ Build completed successfully!"
+            echo "🎉 Build completed successfully!"
         }
         failure {
-            echo "❌ Build failed!"
-            script {
-                currentBuild.result = 'FAILURE'
-            }
+            echo "❌ Build failed. Check logs for errors."
         }
     }
 }
