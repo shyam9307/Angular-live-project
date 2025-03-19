@@ -1,25 +1,10 @@
 pipeline {
     agent any
 
-    environment {
-        NODEJS_VERSION = '18' // Set the Node.js version
-    }
-
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
-            }
-        }
-
-        stage('Setup Node.js') {
-            steps {
-                script {
-                    def nodeInstalled = sh(script: 'which node', returnStatus: true) == 0
-                    if (!nodeInstalled) {
-                        error "Node.js is not installed! Please install Node.js ${NODEJS_VERSION} on your Jenkins agent."
-                    }
-                }
+                git 'your-repository-url'
             }
         }
 
@@ -31,23 +16,15 @@ pipeline {
 
         stage('Build Angular App') {
             steps {
-                sh 'npm run build --prod'
+                sh 'npm run build'
+                sh 'ls -R src/dist/' // Debugging: Verify if files are generated
             }
         }
 
         stage('Archive Build Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'dist/**/*', fingerprint: true
+                archiveArtifacts artifacts: 'src/dist/**/*', fingerprint: true
             }
-        }
-    }
-
-    post {
-        success {
-            echo "🎉 Build completed successfully!"
-        }
-        failure {
-            echo "❌ Build failed. Check logs for errors."
         }
     }
 }
