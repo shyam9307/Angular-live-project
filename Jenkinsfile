@@ -1,23 +1,85 @@
+//New 
+
 pipeline {
-    agent {
-        docker {
-            image 'node:18'  // Replace with your required image
-        }
+    agent any
+
+    environment {
+        BUILD_DIR = 'dist'
     }
+
     stages {
-        stage('Build') {
+        stage('Checkout Code') {
             steps {
-                sh 'node --version'  // Example command inside Docker container
+                git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
             }
         }
-        stage('Test') {
+
+        stage('Install Dependencies') {
             steps {
-                sh 'echo Running Tests'
+                sh 'npm install'
+            }
+        }
+
+        stage('Build Angular App') {
+            steps {
+                sh 'npm run build'  // Run build without Angular CLI installation
+                sh 'echo "Checking build output structure:"'
+                sh 'ls -R'  // ✅ Print the full directory structure after build
+            }
+        }
+
+        stage('Archive Build Artifacts') {
+            steps {
+                sh 'echo "Archiving artifacts from: ${BUILD_DIR}/"'
+                archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
             }
         }
     }
 }
 
+
+
+
+
+
+
+
+// Only Build Script:
+
+// pipeline {
+//     agent any
+
+//     environment {
+//         BUILD_DIR = 'src/dist'
+//     }
+
+//     stages {
+//         stage('Checkout Code') {
+//             steps {
+//                 git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
+//             }
+//         }
+
+//         stage('Install Dependencies') {
+//             steps {
+//                 sh 'npm install'
+//             }
+//         }
+
+//         stage('Build Angular App') {
+//             steps {
+//                 sh 'npm run build'
+//                 sh 'ls -R src/dist/'  // Debug: List build output
+//             }
+//         }
+
+//         stage('Archive Build Artifacts') {
+//             steps {
+//                 archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
+//             }
+//         }
+//     }
+// }
 
 
 
@@ -138,47 +200,6 @@ pipeline {
 // EOF
 // '''
 //                 }
-//             }
-//         }
-//     }
-// }
-
-
-
-
-
-// Only Build Script:
-
-// pipeline {
-//     agent any
-
-//     environment {
-//         BUILD_DIR = 'src/dist'
-//     }
-
-//     stages {
-//         stage('Checkout Code') {
-//             steps {
-//                 git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
-//             }
-//         }
-
-//         stage('Install Dependencies') {
-//             steps {
-//                 sh 'npm install'
-//             }
-//         }
-
-//         stage('Build Angular App') {
-//             steps {
-//                 sh 'npm run build'
-//                 sh 'ls -R src/dist/'  // Debug: List build output
-//             }
-//         }
-
-//         stage('Archive Build Artifacts') {
-//             steps {
-//                 archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
 //             }
 //         }
 //     }
