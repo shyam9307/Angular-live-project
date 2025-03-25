@@ -47,22 +47,19 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'EC2_SSH_KEY', keyFileVariable: 'SSH_KEY_PATH', usernameVariable: 'SSH_USER')]) {
                     script {
-                        def deployCmd = """
+                        def cleanCmd = """
                         ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${EC2_USER}@${EC2_IP} '
                             sudo rm -rf ${REMOTE_DIR}/* &&
                             sudo mkdir -p ${REMOTE_DIR} &&
+                            sudo chown ${EC2_USER}:${EC2_USER} ${REMOTE_DIR} &&
                             exit
                         '
                         """
-                        sh deployCmd
+                        echo "Clean command: ${cleanCmd}"
+                        sh cleanCmd
                     }
-                    // Copy build artifacts from dist/
                     sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} -r ${BUILD_DIR}/* ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
-                    // Copy additional environment files
                     sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} od ci pr ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
-                    // Copy the index.html from the repository's src/ folder
-                    sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} src/index.html ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
-                    // Restart Nginx on the EC2 instance
                     sh "ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${EC2_USER}@${EC2_IP} 'sudo systemctl restart nginx'"
                 }
             }
