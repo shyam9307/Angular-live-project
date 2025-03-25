@@ -56,10 +56,13 @@ pipeline {
                         """
                         sh deployCmd
                     }
+                    // Copy build artifacts from dist/
                     sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} -r ${BUILD_DIR}/* ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
+                    // Copy additional environment files
                     sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} od ci pr ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
-                    
-                    // Restart Nginx
+                    // Copy the index.html from the repository's src/ folder
+                    sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} src/index.html ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
+                    // Restart Nginx on the EC2 instance
                     sh "ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${EC2_USER}@${EC2_IP} 'sudo systemctl restart nginx'"
                 }
             }
