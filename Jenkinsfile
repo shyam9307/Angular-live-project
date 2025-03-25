@@ -96,16 +96,11 @@ pipeline {
         }
         stage('Deploy to EC2') {
             steps {
-                // Use the withCredentials block to inject the SSH key into an environment variable
                 withCredentials([sshUserPrivateKey(credentialsId: 'EC2_SSH_KEY', keyFileVariable: 'SSH_KEY_PATH', usernameVariable: 'SSH_USER')]) {
-                    // Deploy the build artifacts to the EC2 instance
-                    sh """
-                    scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} -r ${BUILD_DIR}/* ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/
-                    """
-                    // Deploy additional files
-                    sh """
-                    scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} od ci pr ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/
-                    """
+                    // Deploy build artifacts
+                    sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} -r ${BUILD_DIR}/* ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
+                    // Deploy additional files (od, ci, pr)
+                    sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} od ci pr ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
                 }
             }
         }
