@@ -1,51 +1,77 @@
 pipeline {
-    agent any
-
-    environment {
-        BUILD_DIR = 'dist'  // Updated from 'src/dist'
-        DEPLOY_DIR = '/var/www/html'
-        SERVER_USER = 'ec2-user'
-        SERVER_IP = '34.207.194.243'
+    agent {
+        docker {
+            image 'node:18'  // Replace with your required image
+        }
     }
-
     stages {
-        stage('Checkout Code') {
+        stage('Build') {
             steps {
-                git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
+                sh 'node --version'  // Example command inside Docker container
             }
         }
-
-        stage('Install Dependencies') {
+        stage('Test') {
             steps {
-                sh 'npm install'
-            }
-        }
-
-        stage('Build Angular App') {
-            steps {
-                sh 'npm run build'
-                sh 'ls -R dist/'  // Debugging: Check if build output exists
-            }
-        }
-
-        stage('Archive Build Artifacts') {
-            steps {
-                archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                script {
-                    sh """
-                        echo "Deploying to server..."
-                        scp -r ${BUILD_DIR}/* ${SERVER_USER}@${SERVER_IP}:${DEPLOY_DIR}
-                    """
-                }
+                sh 'echo Running Tests'
             }
         }
     }
 }
+
+
+
+
+
+
+
+// pipeline {
+//     agent any
+
+//     environment {
+//         BUILD_DIR = 'dist'  // Updated from 'src/dist'
+//         DEPLOY_DIR = '/var/www/html'
+//         SERVER_USER = 'ec2-user'
+//         SERVER_IP = '34.207.194.243'
+//     }
+
+//     stages {
+//         stage('Checkout Code') {
+//             steps {
+//                 git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
+//             }
+//         }
+
+//         stage('Install Dependencies') {
+//             steps {
+//                 sh 'npm install'
+//             }
+//         }
+
+//         stage('Build Angular App') {
+//             steps {
+//                 sh 'npm run build'
+//                 sh 'ls -R dist/'  // Debugging: Check if build output exists
+//             }
+//         }
+
+//         stage('Archive Build Artifacts') {
+//             steps {
+//                 archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
+//             }
+//         }
+
+//         stage('Deploy') {
+//             steps {
+//                 script {
+//                     sh """
+//                         echo "Deploying to server..."
+//                         scp -r ${BUILD_DIR}/* ${SERVER_USER}@${SERVER_IP}:${DEPLOY_DIR}
+//                     """
+//                 }
+//             }
+//         }
+//     }
+// }
 
 
 
