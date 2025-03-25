@@ -1,9 +1,63 @@
+//Build Jenkinsfile: 
+
+// pipeline {
+//     agent any
+
+//     environment {
+//         PATH = "/usr/bin:$PATH"  // Ensure npm is accessible
+//         BUILD_DIR = 'dist'       // Expected output folder for build artifacts
+//     }
+
+//     stages {
+//         stage('Checkout Code') {
+//             steps {
+//                 git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
+//             }
+//         }
+//         stage('Install Dependencies') {
+//             steps {
+//                 // Print Node and npm versions for debugging
+//                 sh 'node -v'
+//                 sh 'npm -v'
+//                 // Clean up previous installs
+//                 sh 'rm -rf node_modules package-lock.json || true'
+//                 sh 'npm cache clean --force'
+//                 // Install dependencies freshly
+//                 sh 'npm install'
+//             }
+//         }
+//         stage('Build Angular App') {
+//             steps {
+//                 // Build the Angular app with output directed to BUILD_DIR
+//                 sh 'npm run build -- --output-path=dist'
+//                 // List the output directory to verify build artifacts
+//                 sh 'ls -l ${BUILD_DIR}/'
+//             }
+//         }
+//         stage('Archive Build Artifacts') {
+//             steps {
+//                 archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
+//             }
+//         }
+//     }
+// }
+
+
+
+
+
+
+//Deploy Jenkinsfile:
+
 pipeline {
     agent any
 
     environment {
-        PATH = "/usr/bin:$PATH"  // Ensure npm is accessible
-        BUILD_DIR = 'dist'       // Expected output folder for build artifacts
+        PATH = "/usr/bin:$PATH"    // Ensure npm is accessible
+        BUILD_DIR = 'dist'         // Output folder for build artifacts
+        EC2_USER = "ec2-user"
+        EC2_IP = "<3.111.135.252>" // Replace with your EC2 public IP
+        REMOTE_DIR = "/usr/share/nginx/html" // Change if your web root is different
     }
 
     stages {
@@ -14,198 +68,46 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                // Print Node and npm versions for debugging
                 sh 'node -v'
                 sh 'npm -v'
-                // Clean up previous installs
                 sh 'rm -rf node_modules package-lock.json || true'
                 sh 'npm cache clean --force'
-                // Install dependencies freshly
                 sh 'npm install'
             }
         }
         stage('Build Angular App') {
             steps {
-                // Build the Angular app with output directed to BUILD_DIR
                 sh 'npm run build -- --output-path=dist'
-                // List the output directory to verify build artifacts
                 sh 'ls -l ${BUILD_DIR}/'
+            }
+        }
+        stage('Create Environment Files') {
+            steps {
+                sh 'echo "Operations Deployment" > od'
+                sh 'echo "Continuous Integration" > ci'
+                sh 'echo "Pull Request" > pr'
+                sh 'ls -l'
             }
         }
         stage('Archive Build Artifacts') {
             steps {
-                archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
+                archiveArtifacts artifacts: "${BUILD_DIR}/**/*, od, ci, pr", fingerprint: true
+            }
+        }
+        stage('Deploy to EC2') {
+            steps {
+                // Use the withCredentials block to inject the SSH key into an environment variable
+                withCredentials([sshUserPrivateKey(credentialsId: 'EC2_SSH_KEY', keyFileVariable: 'SSH_KEY_PATH', usernameVariable: 'SSH_USER')]) {
+                    // Deploy the build artifacts to the EC2 instance
+                    sh """
+                    scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} -r ${BUILD_DIR}/* ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/
+                    """
+                    // Deploy additional files
+                    sh """
+                    scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} od ci pr ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/
+                    """
+                }
             }
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-// Only Build Script:
-
-// pipeline {
-//     agent any
-
-//     environment {
-//         BUILD_DIR = 'src/dist'
-//     }
-
-//     stages {
-//         stage('Checkout Code') {
-//             steps {
-//                 git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
-//             }
-//         }
-
-//         stage('Install Dependencies') {
-//             steps {
-//                 sh 'npm install'
-//             }
-//         }
-
-//         stage('Build Angular App') {
-//             steps {
-//                 sh 'npm run build'
-//                 sh 'ls -R src/dist/'  // Debug: List build output
-//             }
-//         }
-
-//         stage('Archive Build Artifacts') {
-//             steps {
-//                 archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
-//             }
-//         }
-//     }
-// }
-
-
-
-
-
-
-// pipeline {
-//     agent any
-
-//     environment {
-//         BUILD_DIR = 'dist'  // Updated from 'src/dist'
-//         DEPLOY_DIR = '/var/www/html'
-//         SERVER_USER = 'ec2-user'
-//         SERVER_IP = '34.207.194.243'
-//     }
-
-//     stages {
-//         stage('Checkout Code') {
-//             steps {
-//                 git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
-//             }
-//         }
-
-//         stage('Install Dependencies') {
-//             steps {
-//                 sh 'npm install'
-//             }
-//         }
-
-//         stage('Build Angular App') {
-//             steps {
-//                 sh 'npm run build'
-//                 sh 'ls -R dist/'  // Debugging: Check if build output exists
-//             }
-//         }
-
-//         stage('Archive Build Artifacts') {
-//             steps {
-//                 archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
-//             }
-//         }
-
-//         stage('Deploy') {
-//             steps {
-//                 script {
-//                     sh """
-//                         echo "Deploying to server..."
-//                         scp -r ${BUILD_DIR}/* ${SERVER_USER}@${SERVER_IP}:${DEPLOY_DIR}
-//                     """
-//                 }
-//             }
-//         }
-//     }
-// }
-
-
-
-
-
-
-
-
-// To Build Script:
-
-// pipeline {
-//     agent any
-
-//     environment {
-//         EC2_USER = 'ec2-user'
-//         EC2_IP   = '54.211.194.46'
-//         EC2_KEY  = '/var/lib/jenkins/.ssh/ec2-key.pem'
-//         BUILD_DIR = 'src/dist'
-//     }
-
-//     stages {
-//         stage('Checkout Code') {
-//             steps {
-//                 git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
-//             }
-//         }
-
-//         stage('Install Dependencies') {
-//             steps {
-//                 sh 'npm install'
-//             }
-//         }
-
-//         stage('Build Angular App') {
-//             steps {
-//                 sh 'npm run build'
-//                 sh 'ls -R src/dist/'  // Debug: List build output
-//             }
-//         }
-
-//         stage('Archive Build Artifacts') {
-//             steps {
-//                 archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
-//             }
-//         }
-
-//         stage('Deploy to EC2') {
-//             steps {
-//                 script {
-//                     // Copy the build directory to EC2
-//                     sh """
-//                         scp -i ${EC2_KEY} -r ${BUILD_DIR}/ ${EC2_USER}@${EC2_IP}:/home/ec2-user/angular-app/
-//                     """
-
-//                     // SSH into EC2 and execute deployment commands using a heredoc.
-//                     sh '''#!/bin/bash
-// ssh -i ${EC2_KEY} ${EC2_USER}@${EC2_IP} << "EOF"
-// sudo yum install -y nginx
-// sudo systemctl start nginx
-// sudo systemctl enable nginx
-// sudo rm -rf /usr/share/nginx/html/*
-// sudo cp -r /home/ec2-user/angular-app/* /usr/share/nginx/html/
-// sudo systemctl restart nginx
-// EOF
-// '''
-//                 }
-//             }
-//         }
-//     }
-// }
