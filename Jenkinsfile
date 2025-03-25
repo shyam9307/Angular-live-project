@@ -1,11 +1,9 @@
-//New 
-
 pipeline {
     agent any
 
     environment {
-        PATH = "/usr/bin:$PATH"  // Ensures npm is accessible
-        BUILD_DIR = 'dist'       // Updated build directory
+        PATH = "/usr/bin:$PATH"  // Ensure npm is accessible
+        BUILD_DIR = 'dist'       // Expected output folder for build artifacts
     }
 
     stages {
@@ -14,27 +12,26 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/shyam9307/Angular-live-project'
             }
         }
-
         stage('Install Dependencies') {
             steps {
+                // Print Node and npm versions for debugging
+                sh 'node -v'
+                sh 'npm -v'
+                // Clean up previous installs
+                sh 'rm -rf node_modules package-lock.json || true'
+                sh 'npm cache clean --force'
+                // Install dependencies freshly
                 sh 'npm install'
             }
         }
-
         stage('Build Angular App') {
             steps {
-                sh 'npm run build -- --output-path=${BUILD_DIR}'
-                sh 'ls -l ${BUILD_DIR}/'  // Debugging: List build output
+                // Build the Angular app with output directed to BUILD_DIR
+                sh 'npm run build -- --output-path=dist'
+                // List the output directory to verify build artifacts
+                sh 'ls -l ${BUILD_DIR}/'
             }
         }
-
-        stage('Check Artifact Path') {
-            steps {
-                sh 'pwd'  // Print current working directory
-                sh 'ls -R ${BUILD_DIR}/'  // List all files recursively
-            }
-        }
-
         stage('Archive Build Artifacts') {
             steps {
                 archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
@@ -42,6 +39,7 @@ pipeline {
         }
     }
 }
+
 
 
 
