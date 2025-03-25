@@ -4,7 +4,8 @@ pipeline {
     agent any
 
     environment {
-        BUILD_DIR = 'dist'
+        PATH = "/usr/bin:$PATH"  // Ensures npm is accessible
+        BUILD_DIR = 'dist'       // Updated build directory
     }
 
     stages {
@@ -22,20 +23,26 @@ pipeline {
 
         stage('Build Angular App') {
             steps {
-                sh 'npm run build'  // Run build without Angular CLI installation
-                sh 'echo "Checking build output structure:"'
-                sh 'ls -R'  // ✅ Print the full directory structure after build
+                sh 'npm run build -- --output-path=${BUILD_DIR}'
+                sh 'ls -l ${BUILD_DIR}/'  // Debugging: List build output
+            }
+        }
+
+        stage('Check Artifact Path') {
+            steps {
+                sh 'pwd'  // Print current working directory
+                sh 'ls -R ${BUILD_DIR}/'  // List all files recursively
             }
         }
 
         stage('Archive Build Artifacts') {
             steps {
-                sh 'echo "Archiving artifacts from: ${BUILD_DIR}/"'
                 archiveArtifacts artifacts: "${BUILD_DIR}/**/*", fingerprint: true
             }
         }
     }
 }
+
 
 
 
