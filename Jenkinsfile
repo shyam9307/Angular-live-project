@@ -58,8 +58,13 @@ pipeline {
                         echo "Clean command: ${cleanCmd}"
                         sh cleanCmd
                     }
+                    // Copy build artifacts from dist/
                     sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} -r ${BUILD_DIR}/* ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
+                    // Copy additional environment files
                     sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} od ci pr ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
+                    // **New Step**: Copy index.html from src/ (if that's where it is)
+                    sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} src/index.html ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
+                    // Restart Nginx on the EC2 instance
                     sh "ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${EC2_USER}@${EC2_IP} 'sudo systemctl restart nginx'"
                 }
             }
