@@ -49,6 +49,8 @@
 
 //Deploy Jenkinsfile:
 
+//Jenkinsfile:
+
 pipeline {
     agent any
 
@@ -56,7 +58,7 @@ pipeline {
         PATH = "/usr/bin:$PATH"           // Ensure npm is accessible
         BUILD_DIR = 'dist'                // Output folder for build artifacts
         EC2_USER = "ec2-user"
-        EC2_IP = "3.111.135.252"            // Replace with your EC2 public IP without angle brackets
+        EC2_IP = "3.111.135.252"          // Replace with your EC2 public IP
         REMOTE_DIR = "/usr/share/nginx/html" // Change if your web root is different
     }
 
@@ -98,14 +100,22 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'EC2_SSH_KEY', keyFileVariable: 'SSH_KEY_PATH', usernameVariable: 'SSH_USER')]) {
                     script {
-                        def deployCmd = "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} -r ${BUILD_DIR}/* ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
-                        echo "Deploy command: ${deployCmd}"
+                        def deployCmd = """
+                        ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${EC2_USER}@${EC2_IP} '
+                            sudo rm -rf ${REMOTE_DIR}/* &&
+                            sudo mkdir -p ${REMOTE_DIR} &&
+                            exit
+                        '
+                        """
+                        sh deployCmd
                     }
                     sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} -r ${BUILD_DIR}/* ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
                     sh "scp -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} od ci pr ${EC2_USER}@${EC2_IP}:${REMOTE_DIR}/"
+                    
+                    // Restart Nginx
+                    sh "ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${EC2_USER}@${EC2_IP} 'sudo systemctl restart nginx'"
                 }
             }
         }
     }
 }
-
