@@ -53,10 +53,10 @@ pipeline {
     agent any
 
     environment {
-        PATH = "/usr/bin:$PATH"    // Ensure npm is accessible
-        BUILD_DIR = 'dist'         // Output folder for build artifacts
+        PATH = "/usr/bin:$PATH"           // Ensure npm is accessible
+        BUILD_DIR = 'dist'                // Output folder for build artifacts
         EC2_USER = "ec2-user"
-        EC2_IP = "<3.111.135.252>" // Replace with your EC2 public IP
+        EC2_IP = "3.111.135.252"            // Replace with your EC2 public IP without angle brackets
         REMOTE_DIR = "/usr/share/nginx/html" // Change if your web root is different
     }
 
@@ -106,6 +106,6 @@ pipeline {
                 }
             }
         }
-
     }
 }
+
